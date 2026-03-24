@@ -93,6 +93,7 @@ BOOST_AUTO_TEST_CASE(ThresholdBinPlugin_UnsupportedDataType)
     OdinData::IpcMessage cfg;
     frame->meta_data().set_data_type(FrameProcessor::raw_float);
     BOOST_REQUIRE_NO_THROW(cfg.set_param(FrameProcessor::ThresholdBinPlugin::CONFIG_THRESHOLDBIN_PARAM + "/high2", 10));
+    BOOST_REQUIRE_NO_THROW(thb_plugin.configure(cfg, reply));
     thb_plugin.process_frame(frame);
     BOOST_CHECK(!frame->get_meta_data().has_parameter("high2"));
 }
