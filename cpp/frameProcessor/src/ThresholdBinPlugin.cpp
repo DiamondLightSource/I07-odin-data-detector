@@ -103,6 +103,7 @@ void ThresholdBinPlugin::configure(OdinData::IpcMessage& config, OdinData::IpcMe
             std::vector<std::string> histogram_bins = histogram.get_param_names();
             // Update histogram bins
             boost::lock_guard<boost::recursive_mutex> lock(mutex_);
+            std::string&& prefix = CONFIG_THRESHOLDBIN_PARAM + '/';
             for (auto& bin_name : histogram.get_param_names()) {
                 uint64_t bin_threshold = histogram.get_param<uint64_t>(bin_name);
                 LOG4CXX_INFO(logger_, "Threshold " << bin_name << " set to " << bin_threshold);
@@ -110,6 +111,7 @@ void ThresholdBinPlugin::configure(OdinData::IpcMessage& config, OdinData::IpcMe
                 if (this->name_threshold_bimap_.right.count(bin_threshold))
                     throw std::runtime_error("A ThresholdBin bin with given bin_threshold already exists");
                 // Add to underlying containers
+                add_config_param_metadata(prefix + bin_name, PMDD::UINT_T, PMDA::READ_ONLY, 0);
                 this->histogram_.emplace(bin_name, 0);
                 this->name_threshold_bimap_.insert({ std::move(bin_name), bin_threshold });
 
