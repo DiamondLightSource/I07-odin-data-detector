@@ -5,8 +5,8 @@
  *      Author: Famous Alele
  */
 
-#ifndef ODINDATA_ThresholdBinPLUGIN_H
-#define ODINDATA_ThresholdBinPLUGIN_H
+#ifndef ODINDATA_THRESHOLDBINPLUGIN_H
+#define ODINDATA_THRESHOLDBINPLUGIN_H
 
 #include <log4cxx/basicconfigurator.h>
 #include <log4cxx/helpers/exception.h>
@@ -15,7 +15,6 @@
 using namespace log4cxx;
 using namespace log4cxx::helpers;
 
-#include "ClassLoader.h"
 #include "FrameProcessorPlugin.h"
 #include <boost/bimap.hpp>
 
@@ -57,7 +56,7 @@ public:
 
 private:
     // Plugin specific API
-    template <typename PixelType> void calculate_sum(boost::shared_ptr<Frame>& frame);
+    template <typename PixelType> void calculate_sum(const boost::shared_ptr<Frame>& frame);
     /**
      * Add calculated parameters to Frame
      *
@@ -73,7 +72,7 @@ private:
     /** Pointer to logger */
     LoggerPtr logger_;
     /** Mutex used to make this class thread safe */
-    boost::recursive_mutex mutex_;
+    std::mutex mutex_;
     boost::bimap<std::string, uint64_t> name_threshold_bimap_;
     std::unordered_map<std::string, uint64_t> histogram_;
     std::vector<uint64_t> threshold_vector_;

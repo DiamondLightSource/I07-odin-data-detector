@@ -12,12 +12,14 @@ namespace FrameProcessor {
 
 const std::string ThresholdBinPlugin::CONFIG_THRESHOLDBIN_PARAM { "thresholdbin" };
 
-ThresholdBinPlugin::ThresholdBinPlugin()
+ThresholdBinPlugin::ThresholdBinPlugin() :
+    logger_ { Logger::getLogger("FP.ThresholdBinPlugin") }
 {
     // Setup logging for the class
-    logger_ = Logger::getLogger("FP.ThresholdBinPlugin");
+
     LOG4CXX_TRACE(logger_, "ThresholdBinPlugin constructor.");
     this->threshold_vector_.reserve(64);
+    this->histogram_.reserve(64);
 }
 
 ThresholdBinPlugin::~ThresholdBinPlugin()
@@ -25,7 +27,7 @@ ThresholdBinPlugin::~ThresholdBinPlugin()
     LOG4CXX_TRACE(logger_, "ThresholdBinPlugin destructor.");
 }
 
-template <class PixelType> void ThresholdBinPlugin::calculate_sum(boost::shared_ptr<Frame>& frame)
+template <class PixelType> void ThresholdBinPlugin::calculate_sum(const boost::shared_ptr<Frame>& frame)
 {
     const PixelType* data = static_cast<const PixelType*>(frame->get_image_ptr());
     const size_t elements_count = frame->get_image_size() / sizeof(data[0]);
@@ -60,7 +62,7 @@ template <class PixelType> void ThresholdBinPlugin::calculate_sum(boost::shared_
  */
 void ThresholdBinPlugin::process_frame(boost::shared_ptr<Frame> frame)
 {
-    boost::lock_guard<boost::recursive_mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
     LOG4CXX_TRACE(logger_, "Received a new frame...");
     switch (frame->get_meta_data().get_data_type()) {
     case raw_8bit: {
@@ -100,11 +102,11 @@ void ThresholdBinPlugin::configure(OdinData::IpcMessage& config, OdinData::IpcMe
     try {
         if (config.has_param(CONFIG_THRESHOLDBIN_PARAM)) {
             OdinData::IpcMessage histogram(config.get_param<const rapidjson::Value&>(CONFIG_THRESHOLDBIN_PARAM));
-            std::vector<std::string> histogram_bins = histogram.get_param_names();
+            std::vector<std::string>&& histogram_bins = histogram.get_param_names();
             // Update histogram bins
-            boost::lock_guard<boost::recursive_mutex> lock(mutex_);
+            std::lock_guard<std::mutex> lock(mutex_);
             std::string&& prefix = CONFIG_THRESHOLDBIN_PARAM + '/';
-            for (auto& bin_name : histogram.get_param_names()) {
+            for (auto& bin_name : histogram_bins) {
                 uint64_t bin_threshold = histogram.get_param<uint64_t>(bin_name);
                 LOG4CXX_INFO(logger_, "Threshold " << bin_name << " set to " << bin_threshold);
                 // Check for clashes
