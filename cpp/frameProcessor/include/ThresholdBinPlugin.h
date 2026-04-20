@@ -62,7 +62,7 @@ private:
      *
      * \param[in] frame - Pointer to a Frame object.
      */
-    void add_data_to_frame(boost::shared_ptr<Frame>& frame)
+    void add_data_to_frame(const boost::shared_ptr<Frame>& frame)
     {
         for (auto& bin : this->histogram_) {
             frame->meta_data().set_parameter<uint64_t>(bin.first, bin.second);
